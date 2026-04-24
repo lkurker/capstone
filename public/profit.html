@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin</title>
+    <link rel = "stylesheet" href = "styles.css">
+
+    <style>
+
+    .accordion {
+
+        background-color: #eee;
+        color: #444;
+        cursor: pointer;
+        padding: 18px;
+        width: 80%;
+        text-align: left;
+        border: none;
+        outline: none;
+        transition: 0.4s;
+        left: 10%;
+        position: relative;
+  
+    }
+
+    .active, .accordion:hover {
+
+        background-color: #ccc;
+
+    }
+
+
+    .panel {
+
+        padding: 0 18px;
+        background-color: white;
+        display: none;
+        overflow: hidden;
+        width: 80%;
+        left: 10%;
+        position: relative;
+
+    }
+
+    table, th, td {
+
+        border:1px solid black;
+
+    }
+
+    .adminContainer{
+
+        position: relative;
+        top: 100px;
+
+    }
+
+    .adminButton{
+
+        position: relative;
+        left: 300px;
+        width: 100px;
+        top: 50px;
+
+    }
+
+    </style>
+
+</head>
+<body>
+
+    <h1>Admin Page</h1>
+    <button class = "foodItem adminButton"><a href = "index.html">Home</a></button>
+    <button class = "foodItem adminButton" style = "left: 500px; top: 15px"><a href = "admin.html">Sales Report</a></button>
+
+    <div id = "adminContainer" class = "adminContainer">
+
+        
+
+    </div>
+
+    <script src = "profit.js"></script>
+ 
+</body>
+
+
+
+</html>

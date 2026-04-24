@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dining</title>
+    <link rel = "stylesheet" href = "styles.css">
+
+    <style>
+
+        .xtra1{
+
+        border-top-left-radius: 10px;
+        border-bottom-left-radius: 10px;
+        border-left: 2px solid black;
+        border-top: 2px solid black;
+        border-bottom: 2px solid black;
+        border-right: 2px solid white;
+    }
+
+    .xtra2{
+
+        border-top-right-radius: 10px;
+        border-bottom-right-radius: 10px;
+        border-right: 2px solid black;
+        border-top: 2px solid black;
+        border-bottom: 2px solid black;
+        border-left: 2px solid white;
+
+    }
+
+    .xtraContainer{
+
+        width: 300px;
+        height: 80px;
+        border-radius: 10px;
+        border: 2px solid black;
+        position: absolute;
+        top: 25px;
+        left: 400px;
+        z-index: 2;
+        pointer-events: none;
+
+    }
+
+    .diningKeyPad{
+
+        position: absolute;
+        height: 300px;
+        width: 300px;
+        top: 200px;
+        left: 1100px;
+        display: none;
+
+
+    }
+
+    .numberGuests{
+
+        position: absolute;
+        width: 300px;
+        height: 100px;
+        background-color: lightgray;
+        border-radius: 5px;
+        border: 1px solid black;
+        display: flex;
+        justify-content: left;
+        align-items: center;
+        font-size: 40px;
+        left: 1100px;
+        top: 100px;
+        display: none;
+
+    }
+
+    </style>
+
+</head>
+<body id = "background">
+    
+
+    
+
+    
+
+    <button onclick = "selectTable(1, event)" class = "table normalTable" id = "table1">1</button>
+    <button onclick = "selectTable(2, event)" class = "table normalTable" id = "table2" style = "top: 525px;">2</button>
+    <button onclick = "selectTable(3, event)" class = "table normalTable" id = "table3" style = "top: 400px;">3</button>
+    <button onclick = "selectTable(4, event)" class = "table normalTable" id = "table4"style = "top: 275px;">4</button>
+    <button onclick = "selectTable(5, event)" class = "table normalTable" id = "table5"style = "top: 150px;">5</button>
+    <button onclick = "selectTable(6, event)" class = "table normalTable" id = "table6"style = "top: 25px;">6</button>
+    <button onclick = "selectTable(7, event)" class = "table normalTable" id = "table7"style = "top: 275px; left: 400px;">7</button>
+    <button onclick = "selectTable(8, event)" class = "table normalTable" id = "table8"style = "top: 400px; left: 400px;">8</button>
+    <button onclick = "selectTable(9, event)" class = "table normalTable" id = "table9"style = "top: 525px; left: 400px;">9</button>
+    <button onclick = "selectTable(10, event)" class = "table normalTable" id = "table10"style = "left: 400px;">10</button>
+    <button onclick = "selectTable(11, event)" class = "table xtra1" id = "table11"style = "top: 25px; left: 400px;">11</button>
+    <button onclick = "selectTable(12, event)" class = "table xtra2" id = "table12"style = "top: 25px; left: 550px;">12</button>
+    <button onclick = "selectTable(13, event)" class = "table normalTable" id = "table13"style = "top: 25px; left: 750px">13</button>
+    <button onclick = "selectTable(14, event)" class = "table normalTable" id = "table14"style = "top: 150px; left: 750px">14</button>
+    <button onclick = "selectTable(15, event)" class = "table normalTable" id = "table15"style = "top: 275px; left: 750px">15</button>
+    <button onclick = "selectTable(16, event)" class = "table normalTable" id = "table16" style = "top: 400px; left: 750px">16</button>
+
+    <div class = "xtraContainer"></div>
+
+    <!--Similar setup to the one we had on index.html-->
+    <div class = "numberGuests" id = "userInput"></div>
+    <div class = "keyPad diningKeyPad" id = "diningKeyPad">
+
+        <button class = "key">1</button>
+        <button class = "key" style = "grid-column: 2/3; grid-row: 1/2">2</button>
+        <button class = "key" style = "grid-column: 3/4; grid-row: 1/2">3</button>
+        <button class = "key" style = "grid-column: 1/2; grid-row: 2/3">4</button>
+        <button class = "key" style = "grid-column: 2/3; grid-row: 2/3">5</button>
+        <button class = "key" style = "grid-column: 3/4; grid-row: 2/3">6</button>
+        <button class = "key" style = "grid-column: 1/2; grid-row: 3/4">7</button>
+        <button class = "key" style = "grid-column: 2/3; grid-row: 3/4">8</button>
+        <button class = "key" style = "grid-column: 3/4; grid-row: 3/4">9</button>
+        <button class = "key" style = "grid-column: 1/2; grid-row: 4/5">Back</button>
+        <button class = "key" style = "grid-column: 2/3; grid-row: 4/5">0</button>
+        <button class = "key" style = "grid-column: 3/4; grid-row: 4/5">Enter</button>
+
+    </div>
+
+    
+    <button class = "key" style = "position: absolute; left: 800px; top: 600px; width: 75px"><a href = "index.html">Back</a></button>
+
+
+    <!--Put this at the end of the document!-->
+    <script src = "dining.js"></script>
+    
+    
+</body>
+</html>
