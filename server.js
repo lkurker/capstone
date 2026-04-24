@@ -41,6 +41,7 @@ app.post('/check-passcode', (req, res) => {
     (err, results) => {
 
       if (err) {
+        console.error('check-passcode error:', err);
         return res.status(500).json({ success: false });
       }
 
@@ -101,7 +102,7 @@ app.post("/api/set-guests", (req, res) => {
     //check for an error
     if(err) {
 
-      console.log(err);
+      console.error('set-guests error:', err);
       return res.json({success: false});
 
     }
