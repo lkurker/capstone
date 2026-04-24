@@ -1,7 +1,7 @@
 //require('dotenv').config();
 const express = require('express');
 const app = express();
-
+//hello
 app.use(express.static('public'));
 
 const mysql = require('mysql2');
