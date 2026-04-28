@@ -7,8 +7,8 @@ app.use(express.static('public'));
 const mysql = require('mysql2');
 
 
-// Connect to MySQL using env variables
-const db = mysql.createConnection({
+// Connect to MySQL using a connection pool
+const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
@@ -18,14 +18,14 @@ const db = mysql.createConnection({
   queueLimit: 0
 });
 
-db.connect((err) => {
+pool.query('SELECT 1', (err) => {
   if (err) {
     console.error('Database connection failed:', err);
-    // Don't exit - let the app start anyway
   } else {
     console.log('Connected to MySQL!');
   }
 });
+
 
 app.use(express.json());
 
@@ -35,7 +35,7 @@ app.use(express.json());
 app.post('/check-passcode', (req, res) => {
   const { passcode } = req.body;
 
-  db.query(
+  pool.query(
     'SELECT * FROM user WHERE passcode = ?',
     [passcode],
     (err, results) => {
@@ -67,7 +67,7 @@ app.get('/api/get-guests/:tableId', (req, res) => {
 
   const sql = 'SELECT numguests, SalesID FROM restauranttable WHERE tableId = ?';
 
-  db.query(sql, [tableId], (err, results) => {
+  pool.query(sql, [tableId], (err, results) => {
 
     if (err) {
       console.error(err);
@@ -97,7 +97,7 @@ app.post("/api/set-guests", (req, res) => {
 
   const query = "update restauranttable set numguests = ? where tableId = ?";
 
-  db.query(query, [guests, tableId], (err, result) => {
+  pool.query(query, [guests, tableId], (err, result) => {
 
     //check for an error
     if(err) {
@@ -126,7 +126,7 @@ app.post("/api/create-sale", async (req, res) => {
 
     let salesID;
 
-    db.query(
+    pool.query(
     "INSERT INTO sales (userId, totalamount, salestatus) VALUES (?, ?, ?)",
     [currentUser, 0.00, "Open"],
     (err, results) => {
@@ -140,7 +140,7 @@ app.post("/api/create-sale", async (req, res) => {
 
       
 
-      db.query(
+      pool.query(
         "UPDATE restauranttable SET salesId = ? WHERE tableId = ?",
         [salesID, tableId],
         (err2) => {
@@ -171,7 +171,7 @@ app.get('/api/get-sale/:tableID', (req, res) => {
 
   const sql = 'SELECT salesID FROM restauranttable WHERE tableID = ?';
 
-  db.query(sql, [tableID], (err, results) => {
+  pool.query(sql, [tableID], (err, results) => {
 
     if (err) {
       console.error(err);
@@ -201,7 +201,7 @@ app.post("/api/set-item", async (req, res) => {
 
   
 
-    db.query(
+    pool.query(
     "INSERT INTO saleitem (salesID, menuID, guestNum) VALUES (?, ?, ?)",
     [salesID, menuID, guestNum],
     (err, results) => {
@@ -230,7 +230,7 @@ app.post("/api/set-item", async (req, res) => {
     const salesID = req.params.salesID;
     const sql = 'select * from saleitem where salesID = ?';
 
-    db.query(sql, [salesID], (err, results) => {
+    pool.query(sql, [salesID], (err, results) => {
 
     if (err) {
       console.error(err);
@@ -255,7 +255,7 @@ app.post("/api/set-item", async (req, res) => {
     //console.log(menuID);
     const sql = 'select ItemName, Price from menu where menuID = ?';
 
-    db.query(sql, [menuID], (err, results) => {
+    pool.query(sql, [menuID], (err, results) => {
 
     if (err) {
       console.error(err);
@@ -281,7 +281,7 @@ app.post("/api/set-item", async (req, res) => {
     const salesID = req.params.salesID;
     const sql = 'select * from saleitem where salesID = ? order by itemID desc limit 1';
 
-    db.query(sql, [salesID], (err, results) => {
+    pool.query(sql, [salesID], (err, results) => {
 
     if (err) {
       console.error(err);
@@ -305,7 +305,7 @@ app.post("/api/set-item", async (req, res) => {
 
   const itemID = req.params.itemID;
 
-  db.query(
+  pool.query(
     "DELETE FROM saleitem WHERE itemID = ?",
     [itemID],
     (err, results) => {
@@ -328,7 +328,7 @@ app.post("/api/set-item", async (req, res) => {
     const salesID = req.params.salesID;
     const sql = 'select m.Price from saleitem s, menu m where s.MenuID = m.MenuID and s.SalesID = ?';
 
-    db.query(sql, [salesID], (err, results) => {
+    pool.query(sql, [salesID], (err, results) => {
 
     if (err) {
       console.error(err);
@@ -348,45 +348,57 @@ app.post("/api/set-item", async (req, res) => {
   app.post("/api/close-sale", (req, res) => {
   const { salesID, subtotal, tip } = req.body;
 
-  //Begin a transaction to insure in anything fails, nothing will commit to the database
-  db.beginTransaction((err) => {
+  //Get a dedicated connection from the pool for the transaction
+  pool.getConnection((err, conn) => {
     if (err) {
       console.error(err);
       return res.json({ success: false });
     }
 
+  //Begin a transaction to insure in anything fails, nothing will commit to the database
+  conn.beginTransaction((err) => {
+    if (err) {
+      conn.release();
+      console.error(err);
+      return res.json({ success: false });
+    }
+
     //First we will update sales to ensure that everything is closed
-    db.query(
+    conn.query(
       "update sales set totalamount = ?, salestatus = 'Paid', closeTime = Now(), tip = ? where salesID = ?",
       [subtotal, tip, salesID],
       (err2) => {
         if (err2) {
-          return db.rollback(() => {
+          return conn.rollback(() => {
+            conn.release();
             console.error(err2);
             res.json({ success: false });
           });
         }
 
         //Next, make the current table available for future sales
-        db.query(
+        conn.query(
           "update restauranttable set TableStatus = 'Available', numGuests = 0, salesID = null where salesID = ?",
           [salesID],
           (err3) => {
             if (err3) {
-              return db.rollback(() => {
+              return conn.rollback(() => {
+                conn.release();
                 console.error(err3);
                 res.json({ success: false });
               });
             }
 
-            db.commit((err4) => {
+            conn.commit((err4) => {
               if (err4) {
-                return db.rollback(() => {
+                return conn.rollback(() => {
+                  conn.release();
                   console.error(err4);
                   res.json({ success: false });
                 });
               }
 
+              conn.release();
               res.json({
                 success: true,
                 salesID
@@ -397,7 +409,9 @@ app.post("/api/set-item", async (req, res) => {
       }
     );
   });
-});
+  });
+
+
 
 //Return the sales reports from the sales table
 app.get('/api/get-salesReport', (req, res) => {
@@ -406,7 +420,7 @@ app.get('/api/get-salesReport', (req, res) => {
 
   const sql = "select s.salesID, u.firstname, u.lastname, date_format(s.closetime, '%Y-%m-%d') as 'Date', date_format(s.closetime, '%h:%i %p') as 'Time', s.totalAmount, s.tip from sales s, user u where s.userid = u.userid and s.salestatus = 'Paid' order by Date desc, Time asc;";
 
-  db.query(sql, (err, results) => {
+  pool.query(sql, (err, results) => {
 
     if (err) {
       console.error(err);
@@ -479,7 +493,7 @@ order by
     total_sold desc;`;
 
 
-  db.query(sql, (err, results) => {
+  pool.query(sql, (err, results) => {
 
     if (err) {
       console.error(err);
@@ -501,7 +515,7 @@ app.get('/api/get-userSale/:id', (req, res) => {
 
 
 
-  db.query(sql, [id], (err, results) => {
+  pool.query(sql, [id], (err, results) => {
 
     if (err) {
       console.error(err);
@@ -528,7 +542,7 @@ app.get('/api/get-tables', (req, res) => {
                 on s.userID = u.userID
                 order by tableid;`;
 
-   db.query(sql, (err, results) => {
+   pool.query(sql, (err, results) => {
 
     if (err) {
       console.error(err);
